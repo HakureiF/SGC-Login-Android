@@ -1,0 +1,24 @@
+function readRoomId(t) {
+    t.data.position = 0;
+    const id = t.data.readUnsignedInt();
+    const mess = { type: 'roomIdCreated', data: id };
+
+    setTimeout(() => {
+        androidtojs.recvData(JSON.stringify(mess))
+    }, 3000)
+}
+
+
+var loginListener
+function pollingLogin() {
+    if (!GuideManager) {}
+    else if (GuideManager.isCompleted()) {
+        let mimiId = MainManager.actorID
+        androidtojs.hasLogin(mimiId)
+        clearInterval(loginListener)
+
+        SocketConnection.addCmdListener(45135, readRoomId); //监听创建房间
+    }
+}
+
+var loginListener = setInterval(pollingLogin, 200)

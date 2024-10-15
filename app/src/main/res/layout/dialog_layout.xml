@@ -1,0 +1,333 @@
+<?xml version="1.0" encoding="utf-8"?>
+<GridLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/grid_layout"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:alignmentMode="alignMargins"
+    android:columnCount="9"
+    android:padding="16dp"
+    android:rowCount="4"
+    android:useDefaultMargins="true">
+
+
+    <ImageView
+        android:id="@+id/player1SuitImg"
+        android:layout_width="120dp"
+        android:layout_height="120dp"
+
+        android:layout_rowSpan="2"
+        android:layout_columnSpan="2"
+        android:layout_gravity="start"
+        android:scaleType="centerCrop" />
+
+    <ImageView
+        android:id="@+id/player1PetHead1"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:layout_rowSpan="1"
+        android:layout_columnSpan="1"
+        android:layout_gravity="start"
+        android:clickable="true"
+        android:focusable="true"
+        android:scaleType="centerCrop" />
+
+    <ImageView
+        android:id="@+id/player1PetHead2"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:layout_rowSpan="1"
+        android:layout_columnSpan="1"
+        android:layout_gravity="start"
+        android:clickable="true"
+        android:focusable="true"
+        android:scaleType="centerCrop" />
+
+    <LinearLayout
+        android:id="@+id/bpText"
+        android:layout_width="87dp"
+        android:layout_height="60dp"
+        android:layout_rowSpan="1"
+        android:layout_columnSpan="1"
+        android:orientation="vertical">
+        <TextView
+            android:id="@+id/timeCount"
+            android:layout_width="87dp"
+            android:layout_height="32dp" />
+        <TextView
+            android:id="@+id/phaseContent"
+            android:layout_width="87dp"
+            android:layout_height="32dp" />
+    </LinearLayout>
+
+    <ImageView
+        android:id="@+id/player2PetHead1"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:layout_rowSpan="1"
+        android:layout_columnSpan="1"
+        android:layout_gravity="start"
+        android:clickable="true"
+        android:focusable="true"
+        android:scaleType="centerCrop" />
+
+    <ImageView
+        android:id="@+id/player2PetHead2"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:layout_rowSpan="1"
+        android:layout_columnSpan="1"
+        android:layout_gravity="start"
+        android:clickable="true"
+        android:focusable="true"
+        android:scaleType="centerCrop" />
+
+    <ImageView
+        android:id="@+id/player2SuitImg"
+        android:layout_width="120dp"
+        android:layout_height="120dp"
+
+        android:layout_rowSpan="2"
+        android:layout_columnSpan="2"
+        android:layout_gravity="start"
+        android:scaleType="centerCrop" />
+
+
+    <ImageView
+        android:id="@+id/player1PetHead3"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:layout_rowSpan="1"
+        android:layout_columnSpan="1"
+        android:layout_gravity="start"
+        android:clickable="true"
+        android:focusable="true"
+        android:scaleType="centerCrop" />
+
+    <ImageView
+        android:id="@+id/player1PetHead4"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:layout_rowSpan="1"
+        android:layout_columnSpan="1"
+        android:layout_gravity="start"
+        android:clickable="true"
+        android:focusable="true"
+        android:scaleType="centerCrop" />
+
+    <Button
+        android:id="@+id/freshButton"
+        android:layout_rowSpan="1"
+        android:layout_columnSpan="1"
+        tools:text="刷新" />
+
+    <ImageView
+        android:id="@+id/player2PetHead3"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:layout_rowSpan="1"
+        android:layout_columnSpan="1"
+        android:layout_gravity="start"
+        android:clickable="true"
+        android:focusable="true"
+        android:scaleType="centerCrop" />
+
+    <ImageView
+        android:id="@+id/player2PetHead4"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:layout_rowSpan="1"
+        android:layout_columnSpan="1"
+        android:layout_gravity="start"
+        android:clickable="true"
+        android:focusable="true"
+        android:scaleType="centerCrop" />
+
+    <ImageView
+        android:id="@+id/player1PetHead5"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:layout_rowSpan="1"
+        android:layout_columnSpan="1"
+        android:layout_gravity="start"
+        android:clickable="true"
+        android:focusable="true"
+        android:scaleType="centerCrop" />
+
+    <ImageView
+        android:id="@+id/player1PetHead6"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:layout_rowSpan="1"
+        android:layout_columnSpan="1"
+        android:layout_gravity="start"
+        android:clickable="true"
+        android:focusable="true"
+        android:scaleType="centerCrop" />
+
+    <ImageView
+        android:id="@+id/player1PetHead7"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:layout_rowSpan="1"
+        android:layout_columnSpan="1"
+        android:layout_gravity="start"
+        android:clickable="true"
+        android:focusable="true"
+        android:scaleType="centerCrop" />
+
+    <ImageView
+        android:id="@+id/player1PetHead8"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:layout_rowSpan="1"
+        android:layout_columnSpan="1"
+        android:layout_gravity="start"
+        android:clickable="true"
+        android:focusable="true"
+        android:scaleType="centerCrop" />
+
+    <Button
+        android:id="@+id/readyButton"
+        android:layout_rowSpan="1"
+        android:layout_columnSpan="1"
+        tools:text="准备" />
+
+    <ImageView
+        android:id="@+id/player2PetHead5"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:layout_rowSpan="1"
+        android:layout_columnSpan="1"
+        android:layout_gravity="start"
+        android:clickable="true"
+        android:focusable="true"
+        android:scaleType="centerCrop" />
+
+    <ImageView
+        android:id="@+id/player2PetHead6"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:layout_rowSpan="1"
+        android:layout_columnSpan="1"
+        android:layout_gravity="start"
+        android:clickable="true"
+        android:focusable="true"
+        android:scaleType="centerCrop" />
+
+    <ImageView
+        android:id="@+id/player2PetHead7"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:layout_rowSpan="1"
+        android:layout_columnSpan="1"
+        android:layout_gravity="start"
+        android:clickable="true"
+        android:focusable="true"
+        android:scaleType="centerCrop" />
+
+    <ImageView
+        android:id="@+id/player2PetHead8"
+        android:layout_width="63dp"
+        android:layout_height="60dp"
+        android:layout_rowSpan="1"
+        android:layout_columnSpan="1"
+        android:layout_gravity="start"
+        android:clickable="true"
+        android:focusable="true"
+        android:scaleType="centerCrop" />
+
+    <ImageView
+        android:id="@+id/player1PetHead9"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:layout_rowSpan="1"
+        android:layout_columnSpan="1"
+        android:layout_gravity="start"
+        android:clickable="true"
+        android:focusable="true"
+        android:scaleType="centerCrop" />
+
+    <ImageView
+        android:id="@+id/player1PetHead10"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:layout_rowSpan="1"
+        android:layout_columnSpan="1"
+        android:layout_gravity="start"
+        android:clickable="true"
+        android:focusable="true"
+        android:scaleType="centerCrop" />
+
+    <ImageView
+        android:id="@+id/player1PetHead11"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:layout_rowSpan="1"
+        android:layout_columnSpan="1"
+        android:layout_gravity="start"
+        android:clickable="true"
+        android:focusable="true"
+        android:scaleType="centerCrop" />
+
+    <ImageView
+        android:id="@+id/player1PetHead12"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:layout_rowSpan="1"
+        android:layout_columnSpan="1"
+        android:layout_gravity="start"
+        android:clickable="true"
+        android:focusable="true"
+        android:scaleType="centerCrop" />
+
+    <Button
+        android:id="@+id/quitButton"
+        android:layout_rowSpan="1"
+        android:layout_columnSpan="1"
+        tools:text="退出" />
+
+    <ImageView
+        android:id="@+id/player2PetHead9"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:layout_rowSpan="1"
+        android:layout_columnSpan="1"
+        android:layout_gravity="start"
+        android:clickable="true"
+        android:focusable="true"
+        android:scaleType="centerCrop" />
+
+    <ImageView
+        android:id="@+id/player2PetHead10"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:layout_rowSpan="1"
+        android:layout_columnSpan="1"
+        android:layout_gravity="start"
+        android:clickable="true"
+        android:focusable="true"
+        android:scaleType="centerCrop" />
+
+    <ImageView
+        android:id="@+id/player2PetHead11"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:layout_rowSpan="1"
+        android:layout_columnSpan="1"
+        android:layout_gravity="start"
+        android:clickable="true"
+        android:focusable="true"
+        android:scaleType="centerCrop" />
+
+    <ImageView
+        android:id="@+id/player2PetHead12"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:layout_rowSpan="1"
+        android:layout_columnSpan="1"
+        android:layout_gravity="start"
+        android:clickable="true"
+        android:focusable="true"
+        android:scaleType="centerCrop" />
+</GridLayout>
