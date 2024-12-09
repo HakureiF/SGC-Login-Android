@@ -5,6 +5,7 @@ import android.content.ClipboardManager;
 import android.content.Context;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
+import android.view.View;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -61,6 +62,12 @@ public class MainActivity extends AppCompatActivity implements OnMessageReceived
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
+
+        View decorView = getWindow().getDecorView();
+        decorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_FULLSCREEN);
+
+        hideSystemUI();
+
         setContentView(R.layout.activity_main);
 
         drawerLayout = findViewById(R.id.main);
@@ -141,6 +148,23 @@ public class MainActivity extends AppCompatActivity implements OnMessageReceived
         checkAnnouncement();
         String specialHeadStr = ResourceReader.readTextFileFromResource(context, R.raw.special_petheads);
         SeerState.getSpecialHeads(specialHeadStr);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        hideSystemUI(); // 当界面恢复时重新调用，确保状态栏继续隐藏
+    }
+
+    private void hideSystemUI() {
+        View decorView = getWindow().getDecorView();
+        decorView.setSystemUiVisibility(
+                View.SYSTEM_UI_FLAG_FULLSCREEN
+                        | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                        | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+                        | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                        | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+        );
     }
 
     /**
