@@ -11,9 +11,12 @@ public class SgcWsHandler {
     private static WebSocket webSocket;
 
 
-    public static void start(OnMessageReceivedListener listener) {
+    public static void startWs(OnMessageReceivedListener listener) {
+        if (SeerState.mimiId == null) {
+            return;
+        }
         Request request = new Request.Builder()
-                .url("wss://www.hakureif.site:8080/loginer?version=1.1.6&userid=seeraccount" + SeerState.mimiId)
+                .url("wss://www.hakureif.site:8080/loginer?version=1.1.7&userid=seeraccount" + SeerState.mimiId)
                 .build();
         webSocket = new OkHttpClient().newWebSocket(request, new SgcWsListener(listener));
     }

@@ -1,9 +1,10 @@
 package com.example.sgcdemo2;
 
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.Context;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
-import android.webkit.ValueCallback;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -18,10 +19,12 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.navigation.ui.AppBarConfiguration;
 
 import com.example.sgcdemo2.dialog.BpDialogFragment;
+import com.example.sgcdemo2.dialog.GroupChooseFragment;
+import com.example.sgcdemo2.dialog.JoinGameFragment;
 import com.example.sgcdemo2.entity.BagPetVO;
 import com.example.sgcdemo2.entity.mess.MessBody;
 import com.example.sgcdemo2.entity.mess.WebViewEvent;
-import com.example.sgcdemo2.func.OnBpDialogListener;
+import com.example.sgcdemo2.func.OnDialogListener;
 import com.example.sgcdemo2.func.OnMessageReceivedListener;
 import com.example.sgcdemo2.func.OnWebViewListner;
 import com.example.sgcdemo2.js.AndroidtoJs;
@@ -35,25 +38,23 @@ import com.google.android.material.navigation.NavigationView;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
-import java.io.IOException;
 import java.lang.reflect.Type;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
-
 
 public class MainActivity extends AppCompatActivity implements OnMessageReceivedListener,
-        OnBpDialogListener, OnWebViewListner {
+        OnDialogListener, OnWebViewListner {
     private static Gson gson = new Gson();
+
+    public static String modMark = "";
 
     private DrawerLayout drawerLayout;
     private BpDialogFragment bpDialogFragment;
+    private GroupChooseFragment groupChooseFragment;
+    private JoinGameFragment joinGameFragment;
     private AppBarConfiguration mAppBarConfiguration;
 
     @Override
@@ -70,10 +71,16 @@ public class MainActivity extends AppCompatActivity implements OnMessageReceived
             navigationView.setNavigationItemSelectedListener(item -> {
                 int itemId = item.getItemId();
                 if (itemId == R.id.nav_match) {
-                    startMatch();
+                    modMark = "Match";
+                    startConnect();
                 }
                 if (itemId == R.id.nav_create) {
-
+                    modMark = "Create";
+                    startConnect();
+                }
+                if (itemId == R.id.nav_join) {
+                    modMark = "Join";
+                    startConnect();
                 }
                 if (itemId == R.id.nav_fresh) {
                     runOnUiThread(() -> {
@@ -136,14 +143,28 @@ public class MainActivity extends AppCompatActivity implements OnMessageReceived
         SeerState.getSpecialHeads(specialHeadStr);
     }
 
+    /**
+     * 接受bp窗口事件
+     * @param event
+     */
     @Override
-    public void onBpDialogEvent(String event) {
+    public void onDialogEvent(String event) {
         if (event.equals("Close")) {
             bpDialogFragment.dismiss();
             SeerState.resetBpState();
+        } else if (event.startsWith("Group")) {
+            String groupId = event.substring(5);
+            afterHandRoomCreate(groupId);
+        } else if (event.startsWith("JoinGame")) {
+            String gameId = event.substring(8);
+            afterHandRoomJoin(gameId);
         }
     }
 
+    /**
+     * 接受websocket消息
+     * @param message
+     */
     @Override
     public void onMessageReceived(String message) {
         if (message.startsWith("token")) {
@@ -151,7 +172,13 @@ public class MainActivity extends AppCompatActivity implements OnMessageReceived
             System.out.println(token);
             SgcHttpClient.token = token;
             SgcHttpClient.userId = AesUtil.encrypt("seeraccount" + SeerState.mimiId);
-            runOnUiThread(this::afterHand);
+            SgcWsHandler.sendMess("tokenGot" + modMark);
+        } else if (message.equals("matchJoin")) {
+            runOnUiThread(this::afterHandMatch);
+        } else if (message.equals("gameCreate")) {
+            runOnUiThread(this::showGroupChooseDialog);
+        } else if (message.equals("gameJoin")) {
+            runOnUiThread(this::joinGameDialog);
         } else if (message.equals("onMatch")) {
             SeerState.resetBpState();
 
@@ -268,6 +295,11 @@ public class MainActivity extends AppCompatActivity implements OnMessageReceived
         }
     }
 
+    /**
+     * 游戏是否登录
+     * @param mess
+     * @return
+     */
     private boolean unLogin(String mess) {
         if (mess.contains("\"type\":\"unLogin\"")) {
             runOnUiThread(() -> Toast.makeText(getApplicationContext(), "请先登录游戏", Toast.LENGTH_SHORT).show());
@@ -275,6 +307,10 @@ public class MainActivity extends AppCompatActivity implements OnMessageReceived
         return mess.contains("\"type\":\"unLogin\"");
     }
 
+    /**
+     * 接受webview消息
+     * @param mess
+     */
     @Override
     public void onWebViewMess(String mess) {
         if (mess.contains("\"type\":\"isWinner\"")) {
@@ -290,6 +326,22 @@ public class MainActivity extends AppCompatActivity implements OnMessageReceived
         }
     }
 
+    /**
+     * 读取公告
+     */
+    private void checkAnnouncement() {
+        SgcHttpClient.host1 = "https://www.hakureif.site:8080";
+        new Thread(() -> {
+            // 在后台线程中执行网络请求
+            SgcHttpClient sgcHttpClient = new SgcHttpClient();
+            System.out.println(sgcHttpClient.getMap("/api/announcement/getLoginerAnnouncement"));
+            // TODO 展示公告
+        }).start();
+    }
+
+    /**
+     * 展示bp窗口
+     */
     private void showBpDialog() {
         DisplayMetrics displayMetrics = new DisplayMetrics();
         getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
@@ -299,26 +351,38 @@ public class MainActivity extends AppCompatActivity implements OnMessageReceived
         bpDialogFragment.show(getSupportFragmentManager(), "BpDialog");
     }
 
-
-    private void checkAnnouncement() {
-        SgcHttpClient.host1 = "https://www.hakureif.site:8080";
-        new Thread(() -> {
-            // 在后台线程中执行网络请求
-            SgcHttpClient sgcHttpClient = new SgcHttpClient();
-            System.out.println(sgcHttpClient.getMap("/api/announcement/getLoginerAnnouncement"));
-        }).start();
+    /**
+     * 展示选择比赛组窗口
+     */
+    public void showGroupChooseDialog() {
+        DisplayMetrics displayMetrics = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+        groupChooseFragment = new GroupChooseFragment();
+        groupChooseFragment.show(getSupportFragmentManager(), "GroupChooseDialog");
     }
 
+    public void joinGameDialog() {
+        DisplayMetrics displayMetrics = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+        joinGameFragment = new JoinGameFragment();
+        joinGameFragment.show(getSupportFragmentManager(), "GroupChooseDialog");
+    }
 
-    private void startMatch() {
+    /**
+     * 开启匹配模式
+     */
+    private void startConnect() {
         if (SgcWsListener.online) {
             showBpDialog();
         } else {
-            SgcWsHandler.start(this);
+            SgcWsHandler.startWs(this);
         }
     }
 
-    private void afterHand() {
+    /**
+     * websocket连接建立匹配后执行
+     */
+    private void afterHandMatch() {
         WebView webView = findViewById(R.id.webView);
         WebViewEvent<Object> event = new WebViewEvent<>("getBag", "match");
         System.out.println("handle(" + gson.toJson(event) + ")");
@@ -333,64 +397,239 @@ public class MainActivity extends AppCompatActivity implements OnMessageReceived
                     runOnUiThread(() -> Toast.makeText(getApplicationContext(), checkBag, Toast.LENGTH_SHORT).show());
                 } else {
                     SeerState.pets = res.getData2();
-                    handleGetBag(res);
+                    handleGetBagMatch(res);
                 }
             }
         });
     }
 
-    private void handleGetBag(MessBody<List<Integer>, BagPetVO> bagData) {
-        if (bagData.getSignal().equals("match")) {
-            SgcHttpClient.host1 = "https://www.hakureif.site:8080";
-            new Thread(() -> {
-                SgcHttpClient sgcHttpClient = new SgcHttpClient();
-                Map<String, Object> body = new HashMap<>();
-                body.put("bagInfo", bagData.getData2());
-                body.put("matchGame", true);
-                Map<String, Object> resp = sgcHttpClient.post("/api/conventional/verifyBag", body);
-                if (resp != null && resp.containsKey("code")) {
-                    if ((Double) resp.get("code") == 200) {
-                        // 背包校验完成，校验套装
-                        runOnUiThread(() -> {
-                            WebView webView = findViewById(R.id.webView);
-                            WebViewEvent<Object> event = new WebViewEvent<>("getSuit", "match");
-                            webView.evaluateJavascript("handle(" + gson.toJson(event) + ")", s -> {
-                                Type type = new TypeToken<MessBody<Integer, Object>>(){}.getType();
-                                MessBody<Integer, Object> resSuit = gson.fromJson(s, type);
-                                SeerState.suit = resSuit.getData();
-                                Map<String, Object> bodySuit = new HashMap<>();
-                                bodySuit.put("suitId", resSuit.getData());
-                                bodySuit.put("matchGame", true);
-                                new Thread(() -> {
-                                    SgcHttpClient sgcHttpClient2 = new SgcHttpClient();
-                                    Map<String, Object> respSuit = sgcHttpClient2.post("/api/conventional/verifySuit", bodySuit);
-                                    if (respSuit != null) {
-                                        if ((Double) respSuit.get("code") == 200) {
-                                            SgcWsHandler.sendMess("JoinMatch");
-                                            SeerState.phase = "match";
-                                            runOnUiThread(this::showBpDialog);
-                                        }
-                                        if ((Double) respSuit.get("code") == 201) {
-                                            SgcWsHandler.closeWs();
-                                            runOnUiThread(() -> Toast.makeText(getApplicationContext(), (String) respSuit.get("message"), Toast.LENGTH_SHORT).show());
-                                        }
-                                    } else {
-                                        SgcWsHandler.closeWs();
-                                        runOnUiThread(() -> Toast.makeText(getApplicationContext(), "未知错误", Toast.LENGTH_SHORT).show());
-                                    }
-                                }).start();
-                            });
-                        });
-                    }
-                    if ((Double) resp.get("code") == 201) {
-                        SgcWsHandler.closeWs();
-                        runOnUiThread(() -> Toast.makeText(getApplicationContext(), (String) resp.get("message"), Toast.LENGTH_SHORT).show());
-                    }
-                } else {
+    private void afterHandRoomCreate(String groupId) {
+        WebView webView = findViewById(R.id.webView);
+        WebViewEvent<Object> event = new WebViewEvent<>("getBag", "match");
+        System.out.println("handle(" + gson.toJson(event) + ")");
+        webView.evaluateJavascript("handle(" + gson.toJson(event) + ")", s -> {
+            if (!unLogin(s)) {
+                System.out.println(s);
+                Type type = new TypeToken<MessBody<List<Integer>, BagPetVO>>(){}.getType();
+                MessBody<List<Integer>, BagPetVO> res = gson.fromJson(s, type);
+                String checkBag = SeerState.checkBag(res.getData2());
+                if (checkBag != null) {
                     SgcWsHandler.closeWs();
-                    runOnUiThread(() -> Toast.makeText(getApplicationContext(), "未知错误", Toast.LENGTH_SHORT).show());
+                    runOnUiThread(() -> Toast.makeText(getApplicationContext(), checkBag, Toast.LENGTH_SHORT).show());
+                } else {
+                    SeerState.pets = res.getData2();
+                    handleGetBagRoomCreate(res, groupId);
                 }
-            }).start();
-        }
+            }
+        });
+    }
+
+    private void afterHandRoomJoin(String gameId) {
+        WebView webView = findViewById(R.id.webView);
+        WebViewEvent<Object> event = new WebViewEvent<>("getBag", "match");
+        System.out.println("handle(" + gson.toJson(event) + ")");
+        webView.evaluateJavascript("handle(" + gson.toJson(event) + ")", s -> {
+            if (!unLogin(s)) {
+                System.out.println(s);
+                Type type = new TypeToken<MessBody<List<Integer>, BagPetVO>>(){}.getType();
+                MessBody<List<Integer>, BagPetVO> res = gson.fromJson(s, type);
+                String checkBag = SeerState.checkBag(res.getData2());
+                if (checkBag != null) {
+                    SgcWsHandler.closeWs();
+                    runOnUiThread(() -> Toast.makeText(getApplicationContext(), checkBag, Toast.LENGTH_SHORT).show());
+                } else {
+                    SeerState.pets = res.getData2();
+                    handleGetBagRoomJoin(res, gameId);
+                }
+            }
+        });
+    }
+
+    /**
+     * 校验背包，然后校验套装
+     * @param bagData
+     */
+    private void handleGetBagMatch(MessBody<List<Integer>, BagPetVO> bagData) {
+        SgcHttpClient.host1 = "https://www.hakureif.site:8080";
+        new Thread(() -> {
+            SgcHttpClient sgcHttpClient = new SgcHttpClient();
+            Map<String, Object> body = new HashMap<>();
+            body.put("bagInfo", bagData.getData2());
+            body.put("matchGame", true);
+            Map<String, Object> resp = sgcHttpClient.post("/api/conventional/verifyBag", body);
+            if (resp != null && resp.containsKey("code")) {
+                if ((Double) resp.get("code") == 200) {
+                    // 背包校验完成，校验套装
+                    runOnUiThread(() -> {
+                        WebView webView = findViewById(R.id.webView);
+                        WebViewEvent<Object> event = new WebViewEvent<>("getSuit", "match");
+                        webView.evaluateJavascript("handle(" + gson.toJson(event) + ")", s -> {
+                            Type type = new TypeToken<MessBody<Integer, Object>>() {
+                            }.getType();
+                            MessBody<Integer, Object> resSuit = gson.fromJson(s, type);
+                            SeerState.suit = resSuit.getData();
+                            Map<String, Object> bodySuit = new HashMap<>();
+                            bodySuit.put("suitId", resSuit.getData());
+                            bodySuit.put("matchGame", true);
+                            new Thread(() -> {
+                                SgcHttpClient sgcHttpClient2 = new SgcHttpClient();
+                                Map<String, Object> respSuit = sgcHttpClient2.post("/api/conventional/verifySuit", bodySuit);
+                                if (respSuit != null) {
+                                    if ((Double) respSuit.get("code") == 200) {
+                                        SgcWsHandler.sendMess("JoinMatch");
+                                        SeerState.phase = "match";
+                                        runOnUiThread(this::showBpDialog);
+                                    }
+                                    if ((Double) respSuit.get("code") == 201) {
+                                        SgcWsHandler.closeWs();
+                                        runOnUiThread(() -> Toast.makeText(getApplicationContext(), (String) respSuit.get("message"), Toast.LENGTH_SHORT).show());
+                                    }
+                                } else {
+                                    SgcWsHandler.closeWs();
+                                    runOnUiThread(() -> Toast.makeText(getApplicationContext(), "未知错误", Toast.LENGTH_SHORT).show());
+                                }
+                            }).start();
+                        });
+                    });
+                }
+                if ((Double) resp.get("code") == 201) {
+                    SgcWsHandler.closeWs();
+                    runOnUiThread(() -> Toast.makeText(getApplicationContext(), (String) resp.get("message"), Toast.LENGTH_SHORT).show());
+                }
+            } else {
+                SgcWsHandler.closeWs();
+                runOnUiThread(() -> Toast.makeText(getApplicationContext(), "未知错误", Toast.LENGTH_SHORT).show());
+            }
+        }).start();
+    }
+
+
+    private void handleGetBagRoomCreate(MessBody<List<Integer>, BagPetVO> bagData, String groupId) {
+        SgcHttpClient.host1 = "https://www.hakureif.site:8080";
+        new Thread(() -> {
+            SgcHttpClient sgcHttpClient = new SgcHttpClient();
+            Map<String, Object> body = new HashMap<>();
+            body.put("bagInfo", bagData.getData2());
+            body.put("matchGame", false);
+            body.put("groupId", groupId);
+            Map<String, Object> resp = sgcHttpClient.post("/api/conventional/verifyBag", body);
+            if (resp != null && resp.containsKey("code")) {
+                if ((Double) resp.get("code") == 200) {
+                    // 背包校验完成，校验套装
+                    runOnUiThread(() -> {
+                        WebView webView = findViewById(R.id.webView);
+                        WebViewEvent<Object> event = new WebViewEvent<>("getSuit", "match");
+                        webView.evaluateJavascript("handle(" + gson.toJson(event) + ")", s -> {
+                            Type type = new TypeToken<MessBody<Integer, Object>>() {
+                            }.getType();
+                            MessBody<Integer, Object> resSuit = gson.fromJson(s, type);
+                            SeerState.suit = resSuit.getData();
+                            Map<String, Object> bodySuit = new HashMap<>();
+                            bodySuit.put("suitId", resSuit.getData());
+                            bodySuit.put("matchGame", false);
+                            bodySuit.put("groupId", groupId);
+                            new Thread(() -> {
+                                SgcHttpClient sgcHttpClient2 = new SgcHttpClient();
+                                Map<String, Object> respSuit = sgcHttpClient2.post("/api/conventional/verifySuit", bodySuit);
+                                if (respSuit != null) {
+                                    if ((Double) respSuit.get("code") == 200) {
+                                        SgcHttpClient sgcHttpClient3 = new SgcHttpClient();
+                                        Map<String, Object> respRoom = sgcHttpClient3.getMap("/api/game-information/generateConventionalGame?groupId=" + groupId);
+                                        String gameId = (String) respRoom.get("gameId");
+                                        SeerState.gameId = gameId;
+                                        // 获取ClipboardManager
+                                        ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+                                        // 创建ClipData对象
+                                        ClipData clip = ClipData.newPlainText("label", gameId);
+                                        // 将ClipData放入剪贴板
+                                        clipboard.setPrimaryClip(clip);
+                                        Toast.makeText(this, "房间号已复制！", Toast.LENGTH_SHORT).show();
+                                        runOnUiThread(() -> {
+                                            groupChooseFragment.dismiss();
+                                            showBpDialog();
+                                        });
+                                    }
+                                    if ((Double) respSuit.get("code") == 201) {
+                                        SgcWsHandler.closeWs();
+                                        runOnUiThread(() -> Toast.makeText(getApplicationContext(), (String) respSuit.get("message"), Toast.LENGTH_SHORT).show());
+                                    }
+                                } else {
+                                    SgcWsHandler.closeWs();
+                                    runOnUiThread(() -> Toast.makeText(getApplicationContext(), "未知错误", Toast.LENGTH_SHORT).show());
+                                }
+                            }).start();
+                        });
+                    });
+                }
+                if ((Double) resp.get("code") == 201) {
+                    SgcWsHandler.closeWs();
+                    runOnUiThread(() -> Toast.makeText(getApplicationContext(), (String) resp.get("message"), Toast.LENGTH_SHORT).show());
+                }
+            } else {
+                SgcWsHandler.closeWs();
+                runOnUiThread(() -> Toast.makeText(getApplicationContext(), "未知错误", Toast.LENGTH_SHORT).show());
+            }
+        }).start();
+    }
+
+    private void handleGetBagRoomJoin(MessBody<List<Integer>, BagPetVO> bagData, String gameId) {
+        SgcHttpClient.host1 = "https://www.hakureif.site:8080";
+        new Thread(() -> {
+            SgcHttpClient sgcHttpClient = new SgcHttpClient();
+            Map<String, Object> body = new HashMap<>();
+            body.put("bagInfo", bagData.getData2());
+            body.put("matchGame", false);
+            body.put("gameId", gameId);
+            Map<String, Object> resp = sgcHttpClient.post("/api/conventional/verifyBag", body);
+            if (resp != null && resp.containsKey("code")) {
+                if ((Double) resp.get("code") == 200) {
+                    // 背包校验完成，校验套装
+                    runOnUiThread(() -> {
+                        WebView webView = findViewById(R.id.webView);
+                        WebViewEvent<Object> event = new WebViewEvent<>("getSuit", "match");
+                        webView.evaluateJavascript("handle(" + gson.toJson(event) + ")", s -> {
+                            Type type = new TypeToken<MessBody<Integer, Object>>() {
+                            }.getType();
+                            MessBody<Integer, Object> resSuit = gson.fromJson(s, type);
+                            SeerState.suit = resSuit.getData();
+                            Map<String, Object> bodySuit = new HashMap<>();
+                            bodySuit.put("suitId", resSuit.getData());
+                            bodySuit.put("matchGame", false);
+                            bodySuit.put("gameId", gameId);
+                            new Thread(() -> {
+                                SgcHttpClient sgcHttpClient2 = new SgcHttpClient();
+                                Map<String, Object> respSuit = sgcHttpClient2.post("/api/conventional/verifySuit", bodySuit);
+                                if (respSuit != null) {
+                                    if ((Double) respSuit.get("code") == 200) {
+                                        SgcHttpClient sgcHttpClient3 = new SgcHttpClient();
+                                        Map<String, String> joinBody = new HashMap<>();
+                                        Map<String, Object> respJoin = sgcHttpClient3.post("/api/game-information/joinConventionalGame", joinBody);
+
+                                        runOnUiThread(() -> {
+                                            joinGameFragment.dismiss();
+                                            showBpDialog();
+                                        });
+                                    }
+                                    if ((Double) respSuit.get("code") == 201) {
+                                        SgcWsHandler.closeWs();
+                                        runOnUiThread(() -> Toast.makeText(getApplicationContext(), (String) respSuit.get("message"), Toast.LENGTH_SHORT).show());
+                                    }
+                                } else {
+                                    SgcWsHandler.closeWs();
+                                    runOnUiThread(() -> Toast.makeText(getApplicationContext(), "未知错误", Toast.LENGTH_SHORT).show());
+                                }
+                            }).start();
+                        });
+                    });
+                }
+                if ((Double) resp.get("code") == 201) {
+                    SgcWsHandler.closeWs();
+                    runOnUiThread(() -> Toast.makeText(getApplicationContext(), (String) resp.get("message"), Toast.LENGTH_SHORT).show());
+                }
+            } else {
+                SgcWsHandler.closeWs();
+                runOnUiThread(() -> Toast.makeText(getApplicationContext(), "未知错误", Toast.LENGTH_SHORT).show());
+            }
+        }).start();
     }
 }

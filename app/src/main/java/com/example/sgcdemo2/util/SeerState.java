@@ -25,6 +25,7 @@ public class SeerState {
     public static List<BagPetVO> pets;
 
     // BpState
+    public static String gameId;
     public static String phase;
     public static String type;
     public static Integer timeCount = 0;

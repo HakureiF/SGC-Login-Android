@@ -21,8 +21,7 @@ import androidx.fragment.app.DialogFragment;
 import com.bumptech.glide.Glide;
 import com.example.sgcdemo2.R;
 import com.example.sgcdemo2.entity.BagPetVO;
-import com.example.sgcdemo2.entity.mess.MessBody;
-import com.example.sgcdemo2.func.OnBpDialogListener;
+import com.example.sgcdemo2.func.OnDialogListener;
 import com.example.sgcdemo2.net.SgcHttpClient;
 import com.example.sgcdemo2.net.SgcWsHandler;
 import com.example.sgcdemo2.net.SgcWsListener;
@@ -39,7 +38,7 @@ import java.util.Objects;
 public class BpDialogFragment extends DialogFragment {
     private static Gson gson = new Gson();
 
-    OnBpDialogListener listener;
+    OnDialogListener listener;
     private boolean clickAble;
     private View bpView;
     private CountDownTimer countDownTimer;
@@ -58,7 +57,7 @@ public class BpDialogFragment extends DialogFragment {
     public void onAttach(Context context) {
         super.onAttach(context);
         try {
-            listener = (OnBpDialogListener) context;
+            listener = (OnDialogListener) context;
         } catch (ClassCastException e) {
             throw new ClassCastException(context.toString() + " must implement MyDialogListener");
         }
@@ -124,6 +123,8 @@ public class BpDialogFragment extends DialogFragment {
                     case "quitButton":
                         button.setText("退出");
                         button.setOnClickListener(this::onQuitButtonClick);
+                        break;
+                    default:
                         break;
                 }
             }
@@ -222,7 +223,6 @@ public class BpDialogFragment extends DialogFragment {
             new Thread(() -> {
                 SgcHttpClient sgcHttpClient = new SgcHttpClient();
                 SeerState.timeCount = sgcHttpClient.getInteger("/api/game-information/getCountTime");
-                // TODO countTimer
                 bpView.post(() -> {
                     if (countDownTimer != null) {
                         countDownTimer.cancel();
@@ -472,11 +472,11 @@ public class BpDialogFragment extends DialogFragment {
     public void onQuitButtonClick(View view) {
         Button quitButton = (Button) view;
         if (SeerState.phase == null) {
-            listener.onBpDialogEvent("Close");
+            listener.onDialogEvent("Close");
         }
         if (Objects.equals(SeerState.phase, "match")) {
             SgcWsHandler.sendMess("QuitMatch");
-            listener.onBpDialogEvent("Close");
+            listener.onDialogEvent("Close");
         } else {
             new AlertDialog.Builder(this.getContext())
                 .setTitle("确认操作")
@@ -486,7 +486,7 @@ public class BpDialogFragment extends DialogFragment {
                         SgcHttpClient sgcHttpClient = new SgcHttpClient();
                         sgcHttpClient.get("/api/game-information/exitGame");
                     }).start();
-                    listener.onBpDialogEvent("Close");
+                    listener.onDialogEvent("Close");
                     SgcWsHandler.closeWs();
                 }).setNegativeButton("取消", (dialog, which) -> {
                     dialog.dismiss();

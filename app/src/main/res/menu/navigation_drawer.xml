@@ -11,7 +11,11 @@
         <item
             android:id="@+id/nav_create"
             android:enabled="true"
-            android:title="自行12banN" />
+            android:title="创建12banN" />
+        <item
+            android:id="@+id/nav_join"
+            android:enabled="true"
+            android:title="加入12banN" />
         <item
             android:id="@+id/nav_fresh"
             android:enabled="true"
