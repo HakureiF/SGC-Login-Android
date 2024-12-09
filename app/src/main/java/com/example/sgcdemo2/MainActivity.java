@@ -169,7 +169,7 @@ public class MainActivity extends AppCompatActivity implements OnMessageReceived
     public void onMessageReceived(String message) {
         if (message.startsWith("token")) {
             String token = message.split(":")[1];
-            System.out.println(token);
+            System.out.println(SeerState.mimiId);
             SgcHttpClient.token = token;
             SgcHttpClient.userId = AesUtil.encrypt("seeraccount" + SeerState.mimiId);
             SgcWsHandler.sendMess("tokenGot" + modMark);
@@ -214,6 +214,8 @@ public class MainActivity extends AppCompatActivity implements OnMessageReceived
             runOnUiThread(() -> Toast.makeText(getApplicationContext(), "匹配通道目前用作比赛，不允许未参赛选手使用", Toast.LENGTH_SHORT).show());
         } else if (message.equals("RacePlayerMaxCount")) {
             runOnUiThread(() -> Toast.makeText(getApplicationContext(), "你已达比赛到最大次数", Toast.LENGTH_SHORT).show());
+        } else if (message.equals("All members are present")) {
+            bpDialogFragment.initGame();
         } else if (message.equals("ReadyStage")) {
             bpDialogFragment.initGame();
         } else if (message.equals("PlayerBanElf")) {
@@ -537,14 +539,15 @@ public class MainActivity extends AppCompatActivity implements OnMessageReceived
                                         Map<String, Object> respRoom = sgcHttpClient3.getMap("/api/game-information/generateConventionalGame?groupId=" + groupId);
                                         String gameId = (String) respRoom.get("gameId");
                                         SeerState.gameId = gameId;
-                                        // 获取ClipboardManager
-                                        ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
-                                        // 创建ClipData对象
-                                        ClipData clip = ClipData.newPlainText("label", gameId);
-                                        // 将ClipData放入剪贴板
-                                        clipboard.setPrimaryClip(clip);
-                                        Toast.makeText(this, "房间号已复制！", Toast.LENGTH_SHORT).show();
                                         runOnUiThread(() -> {
+                                            // 获取ClipboardManager
+                                            ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+                                            // 创建ClipData对象
+                                            ClipData clip = ClipData.newPlainText("label", gameId);
+                                            // 将ClipData放入剪贴板
+                                            clipboard.setPrimaryClip(clip);
+                                            Toast.makeText(this, "房间号已复制！", Toast.LENGTH_SHORT).show();
+                                            modMark = "";
                                             groupChooseFragment.dismiss();
                                             showBpDialog();
                                         });
@@ -595,7 +598,7 @@ public class MainActivity extends AppCompatActivity implements OnMessageReceived
                             Map<String, Object> bodySuit = new HashMap<>();
                             bodySuit.put("suitId", resSuit.getData());
                             bodySuit.put("matchGame", false);
-                            bodySuit.put("gameId", gameId);
+                            bodySuit.put("gameId", "game" + gameId);
                             new Thread(() -> {
                                 SgcHttpClient sgcHttpClient2 = new SgcHttpClient();
                                 Map<String, Object> respSuit = sgcHttpClient2.post("/api/conventional/verifySuit", bodySuit);
@@ -603,9 +606,11 @@ public class MainActivity extends AppCompatActivity implements OnMessageReceived
                                     if ((Double) respSuit.get("code") == 200) {
                                         SgcHttpClient sgcHttpClient3 = new SgcHttpClient();
                                         Map<String, String> joinBody = new HashMap<>();
+                                        joinBody.put("gameId", gameId);
                                         Map<String, Object> respJoin = sgcHttpClient3.post("/api/game-information/joinConventionalGame", joinBody);
 
                                         runOnUiThread(() -> {
+                                            modMark = "";
                                             joinGameFragment.dismiss();
                                             showBpDialog();
                                         });

@@ -18,13 +18,16 @@ import androidx.fragment.app.DialogFragment;
 
 import com.example.sgcdemo2.MainActivity;
 import com.example.sgcdemo2.R;
+import com.example.sgcdemo2.entity.BagPetVO;
 import com.example.sgcdemo2.entity.RaceGroupVO;
 import com.example.sgcdemo2.entity.adapter.RaceGroupVOAdapter;
 import com.example.sgcdemo2.func.OnDialogListener;
 import com.example.sgcdemo2.net.SgcHttpClient;
 import com.example.sgcdemo2.net.SgcWsHandler;
 import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
+import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Map;
 
@@ -76,6 +79,7 @@ public class GroupChooseFragment extends DialogFragment {
     public void onDismiss(DialogInterface dialog) {
         super.onDismiss(dialog);
         if (MainActivity.modMark.equals("Create")) {
+            System.out.println("停止创建对局");
             SgcWsHandler.closeWs();
         }
     }
@@ -83,14 +87,21 @@ public class GroupChooseFragment extends DialogFragment {
     private void initList() {
         groupsView = groupChooseView.findViewById(R.id.groups_list);
 
-        SgcHttpClient sgcHttpClient = new SgcHttpClient();
-        Map<String, Object> res = sgcHttpClient.get("/api/race-group/searchGroup?group=match");
-        groupList = (List<RaceGroupVO>) res.get("data");
-        adapter = new RaceGroupVOAdapter(this.getContext(), groupList);
-        groupsView.setAdapter(adapter);
-        groupsView.setOnItemClickListener((parent, view, position, id) -> {
-            RaceGroupVO group = groupList.get(position);
-            listener.onDialogEvent("Group" + group.getGroupId());
-        });
+        new Thread(() -> {
+            SgcHttpClient sgcHttpClient = new SgcHttpClient();
+            Map<String, Object> res = sgcHttpClient.get("/api/race-group/searchGroup?group=match");
+            Gson gson = new Gson();
+            Type type = new TypeToken<List<RaceGroupVO>>(){}.getType();
+            groupList = gson.fromJson(gson.toJson(res.get("data")), type);
+            System.out.println(groupList.toString());
+            adapter = new RaceGroupVOAdapter(groupsView.getContext(), groupList);
+            groupChooseView.post(() -> {
+                groupsView.setAdapter(adapter);
+                groupsView.setOnItemClickListener((parent, view, position, id) -> {
+                    RaceGroupVO group = groupList.get(position);
+                    listener.onDialogEvent("Group" + group.getGroupId());
+                });
+            });
+        }).start();
     }
 }

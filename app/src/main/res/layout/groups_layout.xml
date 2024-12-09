@@ -4,23 +4,12 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <ScrollView
-        android:layout_width="658dp"
-        android:layout_height="358dp"
+    <ListView
+        android:id="@+id/groups_list"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         tools:layout_editor_absoluteX="36dp"
         tools:layout_editor_absoluteY="26dp"
-        tools:ignore="MissingConstraints">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical" >
-
-            <ListView
-                android:id="@+id/groups_list"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent" />
-        </LinearLayout>
-    </ScrollView>
+        tools:ignore="MissingConstraints" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

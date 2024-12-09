@@ -4,6 +4,7 @@ package com.example.sgcdemo2.net;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.example.sgcdemo2.MainActivity;
 import com.example.sgcdemo2.func.OnMessageReceivedListener;
 
 import okhttp3.Response;
@@ -24,11 +25,15 @@ public class SgcWsListener extends WebSocketListener {
     public void onClosed(@NonNull WebSocket webSocket, int code, @NonNull String reason) {
         super.onClosed(webSocket, code, reason);
         online = false;
+        System.out.println("ws closed");
+        System.out.println(MainActivity.modMark);
     }
 
     @Override
     public void onClosing(@NonNull WebSocket webSocket, int code, @NonNull String reason) {
         super.onClosing(webSocket, code, reason);
+        System.out.println("ws closing");
+        System.out.println(MainActivity.modMark);
     }
 
     @Override

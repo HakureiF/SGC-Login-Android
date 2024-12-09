@@ -55,22 +55,10 @@ public class JoinGameFragment extends DialogFragment {
         View view = inflater.inflate(R.layout.joingame_layout, null);
         joinGameView = view;
 
-        ViewGroup viewGroup = joinGameView.findViewById(R.id.grid_layout);
+        ViewGroup viewGroup = joinGameView.findViewById(R.id.join_game);
 
-        for (int i=0; i<viewGroup.getChildCount(); i++) {
-            View subView = viewGroup.getChildAt(i);
-            if (subView instanceof Button) {
-                Button button = (Button) subView;
-                String strId = getResources().getResourceEntryName(button.getId());
-                switch (strId) {
-                    case "join_button":
-                        button.setOnClickListener(this::onJoinButtonClick);
-                        break;
-                    default:
-                        break;
-                }
-            }
-        }
+        Button button = joinGameView.findViewById(R.id.join_button);
+        button.setOnClickListener(this::onJoinButtonClick);
 
         builder.setView(view);
         return builder.create();
@@ -80,11 +68,13 @@ public class JoinGameFragment extends DialogFragment {
     public void onDismiss(DialogInterface dialog) {
         super.onDismiss(dialog);
         if (MainActivity.modMark.equals("Join")) {
+            System.out.println("停止加入");
             SgcWsHandler.closeWs();
         }
     }
 
     public void onJoinButtonClick(View view) {
+        System.out.println("join game");
         EditText editText = joinGameView.findViewById(R.id.game_id_edittext);
         listener.onDialogEvent("JoinGame" + editText.getText());
     }

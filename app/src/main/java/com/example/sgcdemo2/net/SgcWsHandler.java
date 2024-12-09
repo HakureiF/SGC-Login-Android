@@ -16,7 +16,7 @@ public class SgcWsHandler {
             return;
         }
         Request request = new Request.Builder()
-                .url("wss://www.hakureif.site:8080/loginer?version=1.1.7&userid=seeraccount" + SeerState.mimiId)
+                .url("wss://www.hakureif.site:8080/loginer?version=1.2.1&userid=seeraccount" + SeerState.mimiId)
                 .build();
         webSocket = new OkHttpClient().newWebSocket(request, new SgcWsListener(listener));
     }
