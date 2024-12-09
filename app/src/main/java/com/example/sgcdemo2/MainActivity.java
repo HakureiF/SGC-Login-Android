@@ -204,33 +204,7 @@ public class MainActivity extends AppCompatActivity implements OnMessageReceived
         } else if (message.equals("gameJoin")) {
             runOnUiThread(this::joinGameDialog);
         } else if (message.equals("onMatch")) {
-            SeerState.resetBpState();
-
-            // 设置套装
-            new Thread(() -> {
-                SgcHttpClient sgcHttpClient = new SgcHttpClient();
-                Map<String, Object> respSuit = sgcHttpClient.get("/api/game-information/setConventionalSuit?suitId=" + SeerState.suit);
-                if (respSuit != null) {
-                    if ((Double) respSuit.get("code") == 201) {
-                        runOnUiThread(() -> Toast.makeText(getApplicationContext(), (String) respSuit.get("message"), Toast.LENGTH_SHORT).show());
-                    }
-                } else {
-                    runOnUiThread(() -> Toast.makeText(getApplicationContext(), "未知错误", Toast.LENGTH_SHORT).show());
-                }
-            }).start();
-
-            // 设置精灵背包
-            new Thread(() -> {
-                SgcHttpClient sgcHttpClient = new SgcHttpClient();
-                Map<String, Object> respPets = sgcHttpClient.post("/api/conventional/freshBag", SeerState.pets);
-                if (respPets != null) {
-                    if ((Double) respPets.get("code") == 201) {
-                        runOnUiThread(() -> Toast.makeText(getApplicationContext(), (String) respPets.get("message"), Toast.LENGTH_SHORT).show());
-                    }
-                } else {
-                    runOnUiThread(() -> Toast.makeText(getApplicationContext(), "未知错误", Toast.LENGTH_SHORT).show());
-                }
-            }).start();
+            setSuitPets();
             bpDialogFragment.initGame();
         } else if (message.equals("SuccessQuitMatch")) {
             SgcWsHandler.closeWs();
@@ -239,6 +213,7 @@ public class MainActivity extends AppCompatActivity implements OnMessageReceived
         } else if (message.equals("RacePlayerMaxCount")) {
             runOnUiThread(() -> Toast.makeText(getApplicationContext(), "你已达比赛到最大次数", Toast.LENGTH_SHORT).show());
         } else if (message.equals("All members are present")) {
+            setSuitPets();
             bpDialogFragment.initGame();
         } else if (message.equals("ReadyStage")) {
             bpDialogFragment.initGame();
@@ -318,6 +293,11 @@ public class MainActivity extends AppCompatActivity implements OnMessageReceived
             SeerState.resetBpState();
             SgcWsHandler.closeWs();
             runOnUiThread(() -> Toast.makeText(getApplicationContext(), "对方退出或掉线", Toast.LENGTH_SHORT).show());
+        }  else if (message.equals("endGame")) {
+            bpDialogFragment.dismiss();
+            SeerState.resetBpState();
+            SgcWsHandler.closeWs();
+            runOnUiThread(() -> Toast.makeText(getApplicationContext(), "对局被关闭", Toast.LENGTH_SHORT).show());
         }
     }
 
@@ -657,6 +637,39 @@ public class MainActivity extends AppCompatActivity implements OnMessageReceived
                 }
             } else {
                 SgcWsHandler.closeWs();
+                runOnUiThread(() -> Toast.makeText(getApplicationContext(), "未知错误", Toast.LENGTH_SHORT).show());
+            }
+        }).start();
+    }
+
+    /**
+     * 设置套装和背包精灵
+     */
+    private void setSuitPets() {
+        SeerState.resetBpState();
+
+        // 设置套装
+        new Thread(() -> {
+            SgcHttpClient sgcHttpClient = new SgcHttpClient();
+            Map<String, Object> respSuit = sgcHttpClient.get("/api/game-information/setConventionalSuit?suitId=" + SeerState.suit);
+            if (respSuit != null) {
+                if ((Double) respSuit.get("code") == 201) {
+                    runOnUiThread(() -> Toast.makeText(getApplicationContext(), (String) respSuit.get("message"), Toast.LENGTH_SHORT).show());
+                }
+            } else {
+                runOnUiThread(() -> Toast.makeText(getApplicationContext(), "未知错误", Toast.LENGTH_SHORT).show());
+            }
+        }).start();
+
+        // 设置精灵背包
+        new Thread(() -> {
+            SgcHttpClient sgcHttpClient = new SgcHttpClient();
+            Map<String, Object> respPets = sgcHttpClient.post("/api/conventional/freshBag", SeerState.pets);
+            if (respPets != null) {
+                if ((Double) respPets.get("code") == 201) {
+                    runOnUiThread(() -> Toast.makeText(getApplicationContext(), (String) respPets.get("message"), Toast.LENGTH_SHORT).show());
+                }
+            } else {
                 runOnUiThread(() -> Toast.makeText(getApplicationContext(), "未知错误", Toast.LENGTH_SHORT).show());
             }
         }).start();

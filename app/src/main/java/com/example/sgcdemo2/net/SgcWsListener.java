@@ -39,6 +39,7 @@ public class SgcWsListener extends WebSocketListener {
     @Override
     public void onFailure(@NonNull WebSocket webSocket, @NonNull Throwable t, @Nullable Response response) {
         super.onFailure(webSocket, t, response);
+        System.out.println(t.getMessage());
     }
 
     @Override
