@@ -95,7 +95,13 @@ public class MainActivity extends AppCompatActivity implements OnMessageReceived
                         webView.reload();
                         SgcWsHandler.closeWs();
                         SeerState.resetBpState();
+                        modMark = "";
                     });
+                }
+                if (itemId == R.id.nav_shut) {
+                    SgcWsHandler.closeWs();
+                    SeerState.resetBpState();
+                    modMark = "";
                 }
                 item.setChecked(true);
                 drawerLayout.closeDrawers();
@@ -205,7 +211,9 @@ public class MainActivity extends AppCompatActivity implements OnMessageReceived
             runOnUiThread(this::joinGameDialog);
         } else if (message.equals("onMatch")) {
             setSuitPets();
-            bpDialogFragment.initGame();
+            if (bpDialogFragment != null) {
+                bpDialogFragment.initGame();
+            }
         } else if (message.equals("SuccessQuitMatch")) {
             SgcWsHandler.closeWs();
         } else if (message.equals("RacePlayerNotFound")) {
@@ -214,7 +222,6 @@ public class MainActivity extends AppCompatActivity implements OnMessageReceived
             runOnUiThread(() -> Toast.makeText(getApplicationContext(), "你已达比赛到最大次数", Toast.LENGTH_SHORT).show());
         } else if (message.equals("All members are present")) {
             setSuitPets();
-            bpDialogFragment.initGame();
         } else if (message.equals("ReadyStage")) {
             bpDialogFragment.initGame();
         } else if (message.equals("PlayerBanElf")) {
@@ -293,7 +300,7 @@ public class MainActivity extends AppCompatActivity implements OnMessageReceived
             SeerState.resetBpState();
             SgcWsHandler.closeWs();
             runOnUiThread(() -> Toast.makeText(getApplicationContext(), "对方退出或掉线", Toast.LENGTH_SHORT).show());
-        }  else if (message.equals("endGame")) {
+        } else if (message.equals("endGame")) {
             bpDialogFragment.dismiss();
             SeerState.resetBpState();
             SgcWsHandler.closeWs();
@@ -617,6 +624,9 @@ public class MainActivity extends AppCompatActivity implements OnMessageReceived
                                             modMark = "";
                                             joinGameFragment.dismiss();
                                             showBpDialog();
+                                            if (bpDialogFragment != null) {
+                                                bpDialogFragment.initGame();
+                                            }
                                         });
                                     }
                                     if ((Double) respSuit.get("code") == 201) {

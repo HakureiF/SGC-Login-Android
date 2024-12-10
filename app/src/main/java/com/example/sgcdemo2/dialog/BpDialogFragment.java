@@ -143,7 +143,8 @@ public class BpDialogFragment extends DialogFragment {
     }
 
     public void syncGameState() {
-        if (!SgcWsListener.online) return;
+        System.out.println(bpView == null);
+        if (!SgcWsListener.online || bpView == null) return;
         if (Objects.equals(SeerState.phase, "match")) {
             bpView.post(() -> {
                 TextView phaseContet = bpView.findViewById(R.id.phaseContent);
@@ -194,7 +195,7 @@ public class BpDialogFragment extends DialogFragment {
                     new Thread(() -> {
                         Map<String, Object> suitResp = sgcHttpClient.getMap("/api/game-information/getPickSuit");
                         if (suitResp != null && suitResp.containsKey("Player1PickSuit") && suitResp.get("Player1PickSuit") != null &&
-                                !Objects.equals(suitResp.get("Player2PickSuit"), "")) {
+                                !Objects.equals(suitResp.get("Player1PickSuit"), "")) {
                             SeerState.player1Suit = Integer.parseInt((String) suitResp.get("Player1PickSuit"));
                             bpView.post(() -> {
                                 ImageView player1SuitImg = bpView.findViewById(R.id.player1SuitImg);
